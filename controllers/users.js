@@ -128,7 +128,6 @@ exports.loginUser = (request, response) => {
 exports.usersInfo = async (req, res) => {
   try {
     const token = req.query.token;
-
     // Recherche de l'utilisateur dans la base de données par email
     const user = await User.findOne({ token: token });
 
