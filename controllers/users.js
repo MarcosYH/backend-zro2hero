@@ -14,7 +14,6 @@ const Cookies = require("universal-cookie");
 const dotenv = require("dotenv");
 
 dotenv.config();
-
 app.use(cookieParser());
 
 // starting first api

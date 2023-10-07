@@ -5,6 +5,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 const userRoutes = require("./routes/users");
+const parcoursRoutes = require("./routes/parcours");
 // require database connection
 const dbConnect = require("./db/dbConnect");
 
@@ -24,7 +25,7 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, DELETE, PATCH, OPTIONS"
   );
-  res.setHeader("Access-Control-Allow-Credentials", "true"); // permet l'envoi de cookies
+  res.setHeader("Access-Control-Allow-Credentials", "true");
   next();
 });
 
@@ -33,6 +34,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/", userRoutes);
-
+app.use("/parcours", parcoursRoutes);
 
 module.exports = app;
