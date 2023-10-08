@@ -8,5 +8,6 @@ router.use(cookieParser());
 
 router.post("/create", parcoursController.createParcours);
 router.get("/viewAllPath", parcoursController.getAllParcours);
+router.get("/viewOnePath/:id", parcoursController.getOneParcours);
 
 module.exports = router;

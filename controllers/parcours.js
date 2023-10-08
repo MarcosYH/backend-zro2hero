@@ -39,6 +39,19 @@ exports.getAllParcours = async (request, response) => {
   }
 };
 
+exports.getOneParcours = async (req, res) => {
+  try {
+    const parcoursId = req.params.id;
+    const parcours = await Parcours.findById(parcoursId);
+    if (!parcours) {
+      return res.status(404).json({ error: "Parcours non trouvé" });
+    }
+    res.status(200).json(parcours);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.updateParcours = async (request, response) => {
   const { id } = request.params;
   const { wording, description, image, categorie } = request.body;
