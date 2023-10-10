@@ -8,8 +8,38 @@ const dotenv = require("dotenv");
 dotenv.config();
 app.use(cookieParser());
 
+// exports.createParcours = (req, res, next) => {
+//   const parcoursObject = JSON.parse(req.body.parcours);
+//   delete parcoursObject._id; // Supprimez l'ID s'il est présent (si vous ne souhaitez pas permettre l'écrasement d'un document existant)
+
+//   // Créez un nouvel objet Parcours avec les données du corps de la requête et le chemin de l'image
+//   const parcours = new Parcours({
+//     ...parcoursObject,
+//     image: `${req.protocol}://${req.get("host")}/images/${req.file.filename}`,
+//   });
+
+//   parcours
+//     .save()
+//     .then(() => {
+//       res
+//         .status(201)
+//         .json({ message: "Parcours enregistré avec succès !", parcours });
+//     })
+//     .catch((error) => {
+//       res.status(400).json({ error });
+//     });
+// };
+
 exports.createParcours = (request, response) => {
-  const { wording, description, image, categorie } = request.body;
+  const { wording, description, categorie } = request.body;
+  
+  // Vérifiez si un fichier a été téléchargé
+  if (!request.file) {
+    return response.status(400).json({ error: "Veuillez télécharger une image." });
+  }
+
+  const image = `${request.protocol}://${request.get('host')}/images/${request.file.filename}`;
+
   const nouveauParcours = new Parcours({
     wording,
     description,
