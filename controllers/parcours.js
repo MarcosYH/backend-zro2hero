@@ -2,6 +2,13 @@ const express = require("express");
 const app = express();
 const cookieParser = require("cookie-parser");
 const Parcours = require("../db/parcourModel");
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const dotenv = require("dotenv");
 
@@ -29,35 +36,43 @@ app.use(cookieParser());
 //       res.status(400).json({ error });
 //     });
 // };
-
-exports.createParcours = (request, response) => {
+ 
+exports.createParcours = async (request, response) => {
   const { wording, description, categorie } = request.body;
-  
+  console.log(request.file.path),
+  console.log(request.file)
   // Vérifiez si un fichier a été téléchargé
   if (!request.file) {
-    return response.status(400).json({ error: "Veuillez télécharger une image." });
+    return response
+      .status(400)
+      .json({ error: "Veuillez télécharger une image." });
   }
 
-  const image = `${request.protocol}://${request.get('host')}/images/${request.file.filename}`;
+  try {
+    // Uploadez l'image sur Cloudinary
+    const image = await cloudinary.uploader.upload(request.file.path);
 
-  const nouveauParcours = new Parcours({
-    wording,
-    description,
-    image,
-    categorie,
-  });
+    // Obtenez le lien d'accès à l'image
+    const imageUrl = image.secure_url;
+    console.log(imageUrl);
 
-  nouveauParcours
-    .save()
-    .then((parcours) => {
-      response.status(201).json({
-        message: "Parcours créé avec succès",
-        parcours: parcours,
-      });
-    })
-    .catch((error) => {
-      response.status(500).json({ error: error.message });
+    const nouveauParcours = new Parcours({
+      wording,
+      description,
+      image: imageUrl,
+      categorie,
     });
+
+    // Enregistrez le parcours dans la base de données
+    const parcours = await nouveauParcours.save();
+
+    response.status(201).json({
+      message: "Parcours créé avec succès",
+      parcours,
+    });
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
 };
 
 exports.getAllParcours = async (request, response) => {
