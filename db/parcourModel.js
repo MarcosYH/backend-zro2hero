@@ -3,20 +3,26 @@ const mongoose = require("mongoose");
 const parcoursSchema = new mongoose.Schema({
   wording: {
     type: String,
-    required: true
+    required: true,
   },
   description: {
     type: String,
-    required: true
+    required: true,
   },
   image: {
-    type: String,
-    required: true
+    public_id: {
+      type: String,
+      required: true,
+    },
+    url: {
+      type: String,
+      required: true,
+    },
   },
   categorie: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
 });
 
 const Parcours = mongoose.model("Parcours", parcoursSchema);

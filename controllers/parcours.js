@@ -15,60 +15,66 @@ const dotenv = require("dotenv");
 dotenv.config();
 app.use(cookieParser());
 
-// exports.createParcours = (req, res, next) => {
-//   const parcoursObject = JSON.parse(req.body.parcours);
-//   delete parcoursObject._id; // Supprimez l'ID s'il est présent (si vous ne souhaitez pas permettre l'écrasement d'un document existant)
+// exports.createParcours = async (request, response) => {
+//   const { wording, description, categorie } = request.body;
+//   console.log(request.file.path),
+//   console.log(request.file)
+//   // Vérifiez si un fichier a été téléchargé
+//   if (!request.file) {
+//     return response
+//       .status(400)
+//       .json({ error: "Veuillez télécharger une image." });
+//   }
 
-//   // Créez un nouvel objet Parcours avec les données du corps de la requête et le chemin de l'image
-//   const parcours = new Parcours({
-//     ...parcoursObject,
-//     image: `${req.protocol}://${req.get("host")}/images/${req.file.filename}`,
-//   });
+//   try {
+//     // Uploadez l'image sur Cloudinary
+//     const image = await cloudinary.uploader.upload(request.file.path);
 
-//   parcours
-//     .save()
-//     .then(() => {
-//       res
-//         .status(201)
-//         .json({ message: "Parcours enregistré avec succès !", parcours });
-//     })
-//     .catch((error) => {
-//       res.status(400).json({ error });
+//     // Obtenez le lien d'accès à l'image
+//     const imageUrl = image.secure_url;
+//     console.log(imageUrl);
+
+//     const nouveauParcours = new Parcours({
+//       wording,
+//       description,
+//       image: imageUrl,
+//       categorie,
 //     });
+
+//     // Enregistrez le parcours dans la base de données
+//     const parcours = await nouveauParcours.save();
+
+//     response.status(201).json({
+//       message: "Parcours créé avec succès",
+//       parcours,
+//     });
+//   } catch (error) {
+//     response.status(500).json({ error: error.message });
+//   }
 // };
- 
+
 exports.createParcours = async (request, response) => {
-  const { wording, description, categorie } = request.body;
-  console.log(request.file.path),
-  console.log(request.file)
-  // Vérifiez si un fichier a été téléchargé
-  if (!request.file) {
-    return response
-      .status(400)
-      .json({ error: "Veuillez télécharger une image." });
-  }
+  const { wording, description, image, categorie } = request.body;
 
   try {
-    // Uploadez l'image sur Cloudinary
-    const image = await cloudinary.uploader.upload(request.file.path);
-
-    // Obtenez le lien d'accès à l'image
-    const imageUrl = image.secure_url;
-    console.log(imageUrl);
-
+    const result = await cloudinary.uploader.upload(image, {
+      folder: "parcours",
+    });
     const nouveauParcours = new Parcours({
       wording,
       description,
-      image: imageUrl,
+      image: {
+        public_id: result.public_id,
+        url: result.secure_url,
+      },
       categorie,
     });
 
-    // Enregistrez le parcours dans la base de données
     const parcours = await nouveauParcours.save();
 
     response.status(201).json({
       message: "Parcours créé avec succès",
-      parcours,
+      parcours: parcours,
     });
   } catch (error) {
     response.status(500).json({ error: error.message });
