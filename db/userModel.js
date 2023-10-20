@@ -1,12 +1,7 @@
 const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
-  lastname: {
-    type: String,
-    required: true,
-    unique: false,
-  },
-  firstname: {
+  name: {
     type: String,
     required: true,
     unique: false,
@@ -19,6 +14,16 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [false, "Not neccessary because googlelogin don't use"],
+    unique: false,
+  },
+  cpassword: {
+    type: String,
+    required: [false, "Not neccessary because googlelogin don't use"],
+    unique: false,
+  },
+  tel: {
+    type: String,
+    required: true,
     unique: false,
   },
   resetToken: {

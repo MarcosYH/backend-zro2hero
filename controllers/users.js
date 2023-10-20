@@ -30,10 +30,11 @@ exports.registerUser = (request, response) => {
     .then((hashedPassword) => {
       // create a new user instance and collect the data
       const user = new User({
-        lastname: request.body.lastname,
-        firstname: request.body.firstname,
+        name: request.body.name,
         email: request.body.email,
         password: hashedPassword,
+        cpassword: request.body.cpassword,
+        tel: request.body.tel,
       });
       // save the new user
       user
