@@ -15,44 +15,6 @@ const dotenv = require("dotenv");
 dotenv.config();
 app.use(cookieParser());
 
-// exports.createParcours = async (request, response) => {
-//   const { wording, description, categorie } = request.body;
-//   console.log(request.file.path),
-//   console.log(request.file)
-//   // Vérifiez si un fichier a été téléchargé
-//   if (!request.file) {
-//     return response
-//       .status(400)
-//       .json({ error: "Veuillez télécharger une image." });
-//   }
-
-//   try {
-//     // Uploadez l'image sur Cloudinary
-//     const image = await cloudinary.uploader.upload(request.file.path);
-
-//     // Obtenez le lien d'accès à l'image
-//     const imageUrl = image.secure_url;
-//     console.log(imageUrl);
-
-//     const nouveauParcours = new Parcours({
-//       wording,
-//       description,
-//       image: imageUrl,
-//       categorie,
-//     });
-
-//     // Enregistrez le parcours dans la base de données
-//     const parcours = await nouveauParcours.save();
-
-//     response.status(201).json({
-//       message: "Parcours créé avec succès",
-//       parcours,
-//     });
-//   } catch (error) {
-//     response.status(500).json({ error: error.message });
-//   }
-// };
-
 exports.createParcours = async (request, response) => {
   const { wording, description, image, categorie } = request.body;
 
