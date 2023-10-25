@@ -23,43 +23,218 @@ exports.start = (request, response, next) => {
 };
 
 // register function
+// exports.registerUser = (request, response) => {
+//   // hash the password
+//   bcrypt
+//     .hash(request.body.password, 10)
+//     .then((hashedPassword) => {
+//       // create a new user instance and collect the data
+//       const user = new User({
+//         name: request.body.name,
+//         email: request.body.email,
+//         password: hashedPassword,
+//         cpassword: request.body.cpassword,
+//         tel: request.body.tel,
+//         role: request.body.role,
+//       });
+//       // save the new user
+//       user
+//         .save()
+//         // return success if the new user is added to the database successfully
+//         .then((result) => {
+//           response.status(201).send({
+//             message: "User Created Successfully",
+//             result,
+//           });
+//         })
+//         // catch error if the new user wasn't added successfully to the database
+//         .catch((error) => {
+//           response.status(500).send({
+//             message: "Error creating user",
+//             error,
+//           });
+//           console.log(error);
+//         });
+//     })
+//     // catch error if the password hash isn't successful
+//     .catch((e) => {
+//       response.status(500).send({
+//         message: "Password was not hashed successfully",
+//         e,
+//       });
+//     });
+// };
+
 exports.registerUser = (request, response) => {
-  // hash the password
-  bcrypt
-    .hash(request.body.password, 10)
-    .then((hashedPassword) => {
-      // create a new user instance and collect the data
-      const user = new User({
-        name: request.body.name,
-        email: request.body.email,
-        password: hashedPassword,
-        cpassword: request.body.cpassword,
-        tel: request.body.tel,
-      });
-      // save the new user
-      user
-        .save()
-        // return success if the new user is added to the database successfully
-        .then((result) => {
-          response.status(201).send({
-            message: "User Created Successfully",
-            result,
+  const { name, email, password, tel, role } = request.body;
+
+  if (!name || !email || !password || !tel) {
+    return response
+      .status(400)
+      .json({ message: "Tous les champs sont obligatoires." });
+  }
+
+  // Vérifier si l'email existe déjà dans la base de données
+  User.findOne({ email: email })
+    .then((existingUser) => {
+      if (existingUser) {
+        return response
+          .status(400)
+          .json({ message: "Cet email est déjà enregistré." });
+      }
+      // Hash du mot de passe
+      bcrypt
+        .hash(password, 10)
+        .then((hashedPassword) => {
+          const user = new User({
+            name: name,
+            email: email,
+            password: hashedPassword,
+            tel: tel,
+            role: role || "client",
           });
+          user
+            .save()
+            .then((savedUser) => {
+              // Génération d'un jeton JWT
+              const token = jwt.sign(
+                { userId: savedUser._id, role: savedUser.role },
+                process.env.JWT_SECRET,
+                { expiresIn: "1h" }
+              );
+              response.status(201).json({
+                message: "Utilisateur créé avec succès.",
+                user: savedUser,
+                token: token,
+              });
+
+              // Générer un jeton unique
+              const tokenvalidationregister = crypto
+                .randomBytes(20)
+                .toString("hex");
+
+              // Configurer le transporteur de messagerie pour envoyer l'e-mail
+              const transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                  user: "wallacecoffi@gmail.com",
+                  pass: "tqmakiwpamlcukhk",
+                },
+              });
+              // Créer le contenu de l'e-mail
+              const mailOptions = {
+                from: "zero2hero@gmail.com",
+                to: email,
+                subject: "Réinitialisation de mot de passe",
+                html: `
+        <!DOCTYPE html>
+  <html>
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+          body {
+              margin: 0;
+              padding: 0;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100vh;
+              background-color: #f1f1f1;
+          }
+          
+          .container {
+              text-align: center;
+              max-width: 600px;
+              padding: 20px;
+              background-color: #ffffff;
+              border-radius: 5px;
+          }
+          
+          h1 {
+              margin: 0;
+              line-height: 24px;
+              font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+              font-size: 20px;
+              font-style: normal;
+              font-weight: normal;
+              color: #333333;
+          }
+          
+          p {
+              margin: 0;
+              -webkit-text-size-adjust: none;
+              -ms-text-size-adjust: none;
+              font-family: Helvetica, 'Helvetica Neue', Arial, verdana, sans-serif;
+              line-height: 24px;
+              color: #666666;
+              font-size: 16px;
+          }
+          
+          .button {
+              display: inline-block;
+              margin-top: 20px;
+              padding: 10px 20px;
+              background-color: #007bff;
+              color: #ffffff;
+              text-decoration: none;
+              border-radius: 5px;
+          }
+          a{
+            color: #ffffff;  
+        }
+      </style>
+  </head>
+  <body>
+      <div class="container">
+           <h1><strong>Veuillez valider votre inscription</strong></h1>
+          <p>Hey👋!</p>
+          <p>Merci pour votre inscrition a zero2hero ! Cliqueer sur le lien suivant pour valider votre incription.</p>
+          <a class="button" href="https://authentification-eight.vercel.app/createnewpassword/${token}" target="_blank">Validation</a>
+      </div>
+  </body>
+  </html>
+          `,
+              };
+
+              // Envoyer l'e-mail
+              transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                  console.log(error);
+                  res.status(500).json({
+                    error:
+                      "Une erreur s'est produite lors de l'envoi de l'e-mail",
+                  });
+                } else {
+                  console.log("E-mail sent:", info.response);
+                  res.status(200).json({
+                    message: "Un e-mail de validation a été envoyé",
+                    tokenvalidationregister,
+                  });
+                }
+              });
+            })
+            .catch((error) => {
+              // Gestion des erreurs de sauvegarde
+              response.status(500).json({
+                message: "Erreur lors de la création de l'utilisateur.",
+                error: error,
+              });
+            });
         })
-        // catch error if the new user wasn't added successfully to the database
         .catch((error) => {
-          response.status(500).send({
-            message: "Error creating user",
-            error,
+          // Gestion des erreurs de hachage du mot de passe
+          response.status(500).json({
+            message: "Erreur lors du hachage du mot de passe.",
+            error: error,
           });
-          console.log(error);
         });
     })
-    // catch error if the password hash isn't successful
-    .catch((e) => {
-      response.status(500).send({
-        message: "Password was not hashed successfully",
-        e,
+    .catch((error) => {
+      // Gestion des erreurs de recherche dans la base de données
+      response.status(500).json({
+        message: "Erreur lors de la vérification de l'email.",
+        error: error,
       });
     });
 };
@@ -172,8 +347,8 @@ exports.forgetpassword = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "wallacecoffi@gmail.com", // Votre adresse e-mail Gmail
-        pass: "tqmakiwpamlcukhk", // Votre mot de passe Gmail
+        user: "wallacecoffi@gmail.com",
+        pass: "tqmakiwpamlcukhk",
       },
     });
 
