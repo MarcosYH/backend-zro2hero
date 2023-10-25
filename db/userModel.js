@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
+  isActivated: {
+    type: Boolean,
+    default: false,
+    required: true,
+  },
   role:{
     type: String,
     required: true,

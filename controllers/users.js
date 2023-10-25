@@ -64,7 +64,6 @@ exports.start = (request, response, next) => {
 //       });
 //     });
 // };
-
 exports.registerUser = (request, response) => {
   const { name, email, password, tel, role } = request.body;
 
@@ -96,18 +95,6 @@ exports.registerUser = (request, response) => {
           user
             .save()
             .then((savedUser) => {
-              // Génération d'un jeton JWT
-              const token = jwt.sign(
-                { userId: savedUser._id, role: savedUser.role },
-                process.env.JWT_SECRET,
-                { expiresIn: "1h" }
-              );
-              response.status(201).json({
-                message: "Utilisateur créé avec succès.",
-                user: savedUser,
-                token: token,
-              });
-
               // Générer un jeton unique
               const tokenvalidationregister = crypto
                 .randomBytes(20)
@@ -123,92 +110,36 @@ exports.registerUser = (request, response) => {
               });
               // Créer le contenu de l'e-mail
               const mailOptions = {
-                from: "zero2hero@gmail.com",
+                from: "wallacecoffi@gmail.com",
                 to: email,
-                subject: "Réinitialisation de mot de passe",
+                subject: "Validation de compte",
                 html: `
-        <!DOCTYPE html>
-  <html>
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
-          body {
-              margin: 0;
-              padding: 0;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              height: 100vh;
-              background-color: #f1f1f1;
-          }
-          
-          .container {
-              text-align: center;
-              max-width: 600px;
-              padding: 20px;
-              background-color: #ffffff;
-              border-radius: 5px;
-          }
-          
-          h1 {
-              margin: 0;
-              line-height: 24px;
-              font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
-              font-size: 20px;
-              font-style: normal;
-              font-weight: normal;
-              color: #333333;
-          }
-          
-          p {
-              margin: 0;
-              -webkit-text-size-adjust: none;
-              -ms-text-size-adjust: none;
-              font-family: Helvetica, 'Helvetica Neue', Arial, verdana, sans-serif;
-              line-height: 24px;
-              color: #666666;
-              font-size: 16px;
-          }
-          
-          .button {
-              display: inline-block;
-              margin-top: 20px;
-              padding: 10px 20px;
-              background-color: #007bff;
-              color: #ffffff;
-              text-decoration: none;
-              border-radius: 5px;
-          }
-          a{
-            color: #ffffff;  
-        }
-      </style>
-  </head>
-  <body>
-      <div class="container">
-           <h1><strong>Veuillez valider votre inscription</strong></h1>
-          <p>Hey👋!</p>
-          <p>Merci pour votre inscrition a zero2hero ! Cliqueer sur le lien suivant pour valider votre incription.</p>
-          <a class="button" href="https://authentification-eight.vercel.app/createnewpassword/${token}" target="_blank">Validation</a>
-      </div>
-  </body>
-  </html>
-          `,
+                <!DOCTYPE html>
+                <body>
+                  <p>Bonjour,</p>
+                  <p>Pour valider votre compte, veuillez cliquer sur le lien suivant :</p>
+                  <p><a href="http://localhost:3000/api/users/activate?code=${tokenvalidationregister}">Valider mon compte</a></p>
+                  <p>Ce lien expirera dans 24 heures.</p>
+                  <p>Merci,</p>
+                  <p>L'équipe du site</p>
+                </body>
+              `,
               };
 
               // Envoyer l'e-mail
               transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
                   console.log(error);
-                  res.status(500).json({
+                  response.status(500).json({
                     error:
                       "Une erreur s'est produite lors de l'envoi de l'e-mail",
                   });
                 } else {
                   console.log("E-mail sent:", info.response);
-                  res.status(200).json({
-                    message: "Un e-mail de validation a été envoyé",
+                  response.status(201).json({
+                    message:
+                      "Utilisateur créé avec succès.Un e-mail de validation a été envoyé",
+                    user: savedUser,
                     tokenvalidationregister,
                   });
                 }
