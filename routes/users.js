@@ -9,6 +9,8 @@ router.get("/", usersController.start)
 
 router.post("/register", usersController.registerUser);
 
+router.get("/validateUser/:token", usersController.activeUser);
+
 router.post("/login", usersController.loginUser);
 
 router.get("/user-info", usersController.usersInfo);

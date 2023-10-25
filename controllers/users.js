@@ -16,54 +16,13 @@ const dotenv = require("dotenv");
 dotenv.config();
 app.use(cookieParser());
 
-// starting first api
+// starting api
 exports.start = (request, response, next) => {
   response.json({ message: "Hey👋! This is backend for zero2hero!" });
   next();
 };
 
 // register function
-// exports.registerUser = (request, response) => {
-//   // hash the password
-//   bcrypt
-//     .hash(request.body.password, 10)
-//     .then((hashedPassword) => {
-//       // create a new user instance and collect the data
-//       const user = new User({
-//         name: request.body.name,
-//         email: request.body.email,
-//         password: hashedPassword,
-//         cpassword: request.body.cpassword,
-//         tel: request.body.tel,
-//         role: request.body.role,
-//       });
-//       // save the new user
-//       user
-//         .save()
-//         // return success if the new user is added to the database successfully
-//         .then((result) => {
-//           response.status(201).send({
-//             message: "User Created Successfully",
-//             result,
-//           });
-//         })
-//         // catch error if the new user wasn't added successfully to the database
-//         .catch((error) => {
-//           response.status(500).send({
-//             message: "Error creating user",
-//             error,
-//           });
-//           console.log(error);
-//         });
-//     })
-//     // catch error if the password hash isn't successful
-//     .catch((e) => {
-//       response.status(500).send({
-//         message: "Password was not hashed successfully",
-//         e,
-//       });
-//     });
-// };
 exports.registerUser = (request, response) => {
   const { name, email, password, tel, role } = request.body;
 
@@ -95,11 +54,16 @@ exports.registerUser = (request, response) => {
           user
             .save()
             .then((savedUser) => {
-              // Générer un jeton unique
-              const tokenvalidationregister = crypto
-                .randomBytes(20)
-                .toString("hex");
-
+              // Générer un jeton unique avec une expiration de 10 minutes (en secondes)
+              const expirationTime = 10 * 60;
+              const tokenvalidationregister = jwt.sign(
+                {
+                  userId: user._id,
+                  code: crypto.randomBytes(20).toString("hex"),
+                },
+                process.env.JWT_SECRET,
+                { expiresIn: expirationTime }
+              );
               // Configurer le transporteur de messagerie pour envoyer l'e-mail
               const transporter = nodemailer.createTransport({
                 service: "gmail",
@@ -118,8 +82,8 @@ exports.registerUser = (request, response) => {
                 <body>
                   <p>Bonjour,</p>
                   <p>Pour valider votre compte, veuillez cliquer sur le lien suivant :</p>
-                  <p><a href="http://localhost:3000/api/users/activate?code=${tokenvalidationregister}">Valider mon compte</a></p>
-                  <p>Ce lien expirera dans 24 heures.</p>
+                  <p><a href="http://localhost:3000/validateUser/${tokenvalidationregister}">Valider mon compte</a></p>
+                  <p>Ce lien expirera dans 10min.</p>
                   <p>Merci,</p>
                   <p>L'équipe du site</p>
                 </body>
@@ -170,64 +134,115 @@ exports.registerUser = (request, response) => {
     });
 };
 
+exports.activeUser = (req, res) => {
+  const token = req.params.token;
+
+  try {
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+    const userId = decodedToken.userId;
+
+    User.findOneAndUpdate(
+      { _id: userId, isActivated: false },
+      { $set: { isActivated: true } },
+      { new: true }
+    )
+      .then((user) => {
+        if (user) {
+          res
+            .status(200)
+            .json({ message: "Votre compte a été activé avec succès!", user });
+        } else {
+          res
+            .status(404)
+            .json({
+              error: "Lien de validation non valide ou compte déjà activé.",
+            });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        res
+          .status(500)
+          .json({
+            error: "Une erreur s'est produite lors de l'activation du compte.",
+          });
+      });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: "Lien de validation invalide ou expiré." });
+  }
+};
+
 //login function
 exports.loginUser = (request, response) => {
-  // check if email exists
+  // Vérifier si l'email existe
   User.findOne({ email: request.body.email })
-
-    // if email exists
     .then((user) => {
-      // compare the password entered and the hashed password found
+      if (!user) {
+        return response.status(404).send({
+          message: "Email non trouvé",
+        });
+      }
+      // Vérifier si le compte est activé
+      if (!user.isActivated) {
+        return response.status(403).send({
+          message: "Compte non activé",
+        });
+      }
+
+      // Comparer le mot de passe entré et le mot de passe haché trouvé
       bcrypt
         .compare(request.body.password, user.password)
-
-        // if the passwords match
         .then((passwordCheck) => {
-          // check if password matches
           if (!passwordCheck) {
+            // Si les mots de passe ne correspondent pas
             return response.status(400).send({
-              message: "Passwords does not match",
-              error,
+              message: "Les mots de passe ne correspondent pas",
             });
           }
 
-          // create JWT token
-          const token = jwt.sign(
-            {
-              userId: user._id,
-              userEmail: user.email,
-            },
-            // get the JWT secret from an environment variable
-            process.env.JWT_SECRET,
-            { expiresIn: "1h" }
-          );
+          // Créer le token JWT
+          const tokenPayload = {
+            userId: user._id,
+            userEmail: user.email,
+            userRole: user.role,
+          };
 
-          // update the user's token
+          const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
+            expiresIn: "1h",
+          });
+
           user.token = token;
-          user.save();
-
-          // return success response
-          response.status(200).send({
-            message: "Login Successful",
-            email: user.email,
-            token,
+          user.save()
+          .then(() => {
+            response.status(200).send({
+              message: "Login Successful",
+              email: user.email,
+              token,
+              role: user.role, // Envoyer le rôle de l'utilisateur dans la réponse
+            });
+          })
+          .catch((error) => {
+            response.status(500).send({
+              message: "Erreur de serveur interne",
+              error,
+            });
           });
-        })
-        // catch error if password does not match
-        .catch((error) => {
-          response.status(400).send({
-            message: "Passwords does not match",
-            error,
-          });
+      })
+      .catch((error) => {
+        response.status(500).send({
+          message: "Erreur de serveur interne",
+          error,
         });
-    })
-    // catch error if email does not exist
-    .catch((e) => {
-      response.status(404).send({
-        message: "Email not found",
-        e,
       });
+  })
+  .catch((error) => {
+    response.status(500).send({
+      message: "Erreur de serveur interne",
+      error,
     });
+  });
 };
 
 //user-info function
