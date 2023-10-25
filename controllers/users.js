@@ -49,7 +49,7 @@ exports.registerUser = (request, response) => {
             email: email,
             password: hashedPassword,
             tel: tel,
-            role: role || "client",
+            role: role || "student",
           });
           user
             .save()
