@@ -82,7 +82,7 @@ exports.registerUser = (request, response) => {
                 <body>
                   <p>Bonjour,</p>
                   <p>Pour valider votre compte, veuillez cliquer sur le lien suivant :</p>
-                  <p><a href="http://localhost:3000/validateUser/${tokenvalidationregister}">Valider mon compte</a></p>
+                  <p><a href="https://zero2hero-ivory.vercel.app/validateUser/${tokenvalidationregister}" target="_blank">Valider mon compte</a></p>
                   <p>Ce lien expirera dans 10min.</p>
                   <p>Merci,</p>
                   <p>L'équipe du site</p>
@@ -148,7 +148,7 @@ exports.activeUser = (req, res) => {
       { new: true }
     )
       .then((user) => {
-        if (user) {
+        if (!user) {
           res
             .status(200)
             .json({ message: "Votre compte a été activé avec succès!", user });
@@ -207,6 +207,7 @@ exports.loginUser = (request, response) => {
             userId: user._id,
             userEmail: user.email,
             userRole: user.role,
+            isActivated: user.isActivated,
           };
 
           const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
@@ -218,9 +219,10 @@ exports.loginUser = (request, response) => {
           .then(() => {
             response.status(200).send({
               message: "Login Successful",
+              isActivated: user.isActivated,
               email: user.email,
               token,
-              role: user.role, // Envoyer le rôle de l'utilisateur dans la réponse
+              role: user.role,
             });
           })
           .catch((error) => {
