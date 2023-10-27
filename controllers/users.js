@@ -68,25 +68,54 @@ exports.registerUser = (request, response) => {
               const transporter = nodemailer.createTransport({
                 service: "gmail",
                 auth: {
-                  user: "wallacecoffi@gmail.com",
-                  pass: "tqmakiwpamlcukhk",
+                  // user: "wallacecoffi@gmail.com",
+                  user: "zero2hero023@gmail.com",
+                  // pass: "tqmakiwpamlcukhk",
+                  pass: "gbaryinyavmewewj",
                 },
               });
               // Créer le contenu de l'e-mail
               const mailOptions = {
-                from: "wallacecoffi@gmail.com",
+                from: "zero2hero",
                 to: email,
                 subject: "Validation de compte",
                 html: `
                 <!DOCTYPE html>
-                <body>
-                  <p>Bonjour,</p>
-                  <p>Pour valider votre compte, veuillez cliquer sur le lien suivant :</p>
-                  <p><a href="https://zero2hero-ivory.vercel.app/validateUser/${tokenvalidationregister}" target="_blank">Valider mon compte</a></p>
-                  <p>Ce lien expirera dans 10min.</p>
-                  <p>Merci,</p>
-                  <p>L'équipe du site</p>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Confirmation d'inscription</title>
+                </head>
+                <body style="font-family: Arial, sans-serif;">
+                
+                    <table style="max-width: 600px; margin: 0 auto; padding: 20px; border-collapse: collapse; width: 100%;">
+                        <tr>
+                            <td style="background-color: #f8f9fa; text-align: center; padding: 20px;">
+                                <img src="https://res.cloudinary.com/dbx3mcmdp/image/upload/v1698390947/parcours/iiklkuigcwx9ibesloms.png" alt="Logo" style="max-width: 150px; height: auto;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #ffffff; padding: 40px;">
+                                <h2 style="font-size: 24px; color: #333;">Bienvenue sur zero2hero</h2>
+                                <p style="font-size: 16px; color: #555;">Merci de vous être inscrit sur <strong>zero2hero</strong>. Pour valider votre compte, veuillez cliquer sur le lien ci-dessous :</p>
+                                <p style="text-align: center; margin-top: 30px;">
+                                    <a href="http://localhost:3001/validateUser/${tokenvalidationregister}" style="display: inline-block; text-decoration: none; background-color: #007bff; color: #ffffff; padding: 10px 20px; border-radius: 5px; font-size: 16px;">Valider mon compte</a>
+                                </p>
+                                <p style="font-size: 14px; color: #777; margin-top: 30px;">Si vous n'avez pas créé de compte sur zero2hero, veuillez le signalé.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #f8f9fa; text-align: center; padding: 20px;">
+                                <p style="font-size: 14px; color: #888;">Bénin | Cotonou | 2023 |
+                                  Contact : +22969070735</p>
+                                <p style="font-size: 14px; color: #888;">Copyright © 2023 Emes</p>
+                            </td>
+                        </tr>
+                    </table>
                 </body>
+                </html>
+                
               `,
               };
 
