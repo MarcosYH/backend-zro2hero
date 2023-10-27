@@ -100,7 +100,7 @@ exports.registerUser = (request, response) => {
                                 <h2 style="font-size: 24px; color: #333;">Bienvenue sur zero2hero</h2>
                                 <p style="font-size: 16px; color: #555;">Merci de vous être inscrit sur <strong>zero2hero</strong>. Pour valider votre compte, veuillez cliquer sur le lien ci-dessous :</p>
                                 <p style="text-align: center; margin-top: 30px;">
-                                    <a href="https://dev.zth.emes.bj/validateUser/${tokenvalidationregister}" style="display: inline-block; text-decoration: none; background-color: #007bff; color: #ffffff; padding: 10px 20px; border-radius: 5px; font-size: 16px;">Valider mon compte</a>
+                                    <a href="http://localhost:3001/validateUser/${tokenvalidationregister}" style="display: inline-block; text-decoration: none; background-color: #007bff; color: #ffffff; padding: 10px 20px; border-radius: 5px; font-size: 16px;">Valider mon compte</a>
                                 </p>
                                 <p style="font-size: 14px; color: #777; margin-top: 30px;">Si vous n'avez pas créé de compte sur zero2hero, veuillez le signalé.</p>
                             </td>
@@ -163,45 +163,75 @@ exports.registerUser = (request, response) => {
     });
 };
 
-exports.activeUser = (req, res) => {
-  const token = req.params.token;
+// exports.activeUser = (req, res) => {
+//   const token = req.params.token;
+
+//   try {
+//     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+//     const userId = decodedToken.userId;
+
+//     User.findOneAndUpdate(
+//       { _id: userId, isActivated: false },
+//       { $set: { isActivated: true } },
+//       { new: true }
+//     )
+//       .then((user) => {
+//         if (!user) {
+//           res
+//             .status(200)
+//             .json({ message: "Votre compte a été activé avec succès!", user });
+//         } else {
+//           res
+//             .status(404)
+//             .json({
+//               error: "Lien de validation non valide ou compte déjà activé.",
+//             });
+//         }
+//       })
+//       .catch((err) => {
+//         console.error(err);
+//         res
+//           .status(500)
+//           .json({
+//             error: "Une erreur s'est produite lors de l'activation du compte.",
+//           });
+//       });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(400).json({ error: "Lien de validation invalide ou expiré." });
+//   }
+// };
+
+
+exports.activeUser = async (req, res) => {
+  const { token } = req.params;
 
   try {
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findOne({ _id: decodedToken.userId });
 
-    const userId = decodedToken.userId;
-
-    User.findOneAndUpdate(
-      { _id: userId, isActivated: false },
-      { $set: { isActivated: true } },
-      { new: true }
-    )
-      .then((user) => {
-        if (!user) {
-          res
-            .status(200)
-            .json({ message: "Votre compte a été activé avec succès!", user });
-        } else {
-          res
-            .status(404)
-            .json({
-              error: "Lien de validation non valide ou compte déjà activé.",
-            });
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        res
-          .status(500)
-          .json({
-            error: "Une erreur s'est produite lors de l'activation du compte.",
-          });
-      });
+    if (user) {
+      console.log(user);
+      if (user.isActivated) {
+        console.log("Compte déjà activé pour l'utilisateur avec l'ID : ", user._id);
+        return res.status(200).json({ message: "Compte déjà activé." });
+      } else {
+        await User.updateOne({ _id: user._id }, { $set: { isActivated: true } });
+        console.log("Compte activé pour l'utilisateur avec l'ID : ", user._id);
+        return res.status(200).json({ message: "Votre compte a été activé avec succès." });
+      }
+    } else {
+      console.log("Lien de validation invalide.");
+      return res.status(400).json({ message: "Lien de validation invalide." });
+    }
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error: "Lien de validation invalide ou expiré." });
+    return res.status(400).json({ message: "Lien de validation invalide." });
   }
 };
+
+
 
 //login function
 exports.loginUser = (request, response) => {
