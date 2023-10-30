@@ -97,7 +97,7 @@ exports.registerUser = (request, response) => {
                         </tr>
                         <tr>
                             <td style="background-color: #ffffff; padding: 40px;">
-                                <h2 style="font-size: 24px; color: #333;">Bienvenue sur zero2hero</h2>
+                                <h2 style="font-size: 24px; color: #333;">Bienvenue sur zero2hero, ${name} !</h2>
                                 <p style="font-size: 16px; color: #555;">Merci de vous être inscrit sur <strong>zero2hero</strong>. Pour valider votre compte, veuillez cliquer sur le lien ci-dessous :</p>
                                 <p style="text-align: center; margin-top: 30px;">
                                     <a href="https://dev.zth.emes.bj/validateUser/${tokenvalidationregister}" style="display: inline-block; text-decoration: none; background-color: #007bff; color: #ffffff; padding: 10px 20px; border-radius: 5px; font-size: 16px;">Valider mon compte</a>
