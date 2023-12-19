@@ -23,6 +23,18 @@ const parcoursSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  level: {
+    type: String,
+    required: true,
+  },
+  time: {
+    type: String,
+    required: true,
+  },
+  timecategory: {
+    type: String,
+    required: true,
+  },
 });
 
 const Parcours = mongoose.model("Parcours", parcoursSchema);

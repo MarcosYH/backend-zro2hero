@@ -51,10 +51,9 @@ exports.registerUser = (request, response) => {
             tel: tel,
             role: role || "student",
           });
-          user
+          use
             .save()
             .then((savedUser) => {
-              // Générer un jeton unique avec une expiration de 10 minutes (en secondes)
               const expirationTime = 10 * 60;
               const tokenvalidationregister = jwt.sign(
                 {
@@ -64,7 +63,7 @@ exports.registerUser = (request, response) => {
                 process.env.JWT_SECRET,
                 { expiresIn: expirationTime }
               );
-              // Configurer le transporteur de messagerie pour envoyer l'e-mail
+
               const transporter = nodemailer.createTransport({
                 service: "gmail",
                 auth: {
@@ -74,7 +73,6 @@ exports.registerUser = (request, response) => {
                   pass: "gbaryinyavmewewj",
                 },
               });
-              // Créer le contenu de l'e-mail
               const mailOptions = {
                 from: "zero2hero",
                 to: email,
@@ -119,7 +117,6 @@ exports.registerUser = (request, response) => {
               `,
               };
 
-              // Envoyer l'e-mail
               transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
                   console.log(error);
@@ -139,7 +136,6 @@ exports.registerUser = (request, response) => {
               });
             })
             .catch((error) => {
-              // Gestion des erreurs de sauvegarde
               response.status(500).json({
                 message: "Erreur lors de la création de l'utilisateur.",
                 error: error,
@@ -147,7 +143,6 @@ exports.registerUser = (request, response) => {
             });
         })
         .catch((error) => {
-          // Gestion des erreurs de hachage du mot de passe
           response.status(500).json({
             message: "Erreur lors du hachage du mot de passe.",
             error: error,
@@ -155,54 +150,12 @@ exports.registerUser = (request, response) => {
         });
     })
     .catch((error) => {
-      // Gestion des erreurs de recherche dans la base de données
       response.status(500).json({
         message: "Erreur lors de la vérification de l'email.",
         error: error,
       });
     });
 };
-
-// exports.activeUser = (req, res) => {
-//   const token = req.params.token;
-
-//   try {
-//     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-
-//     const userId = decodedToken.userId;
-
-//     User.findOneAndUpdate(
-//       { _id: userId, isActivated: false },
-//       { $set: { isActivated: true } },
-//       { new: true }
-//     )
-//       .then((user) => {
-//         if (!user) {
-//           res
-//             .status(200)
-//             .json({ message: "Votre compte a été activé avec succès!", user });
-//         } else {
-//           res
-//             .status(404)
-//             .json({
-//               error: "Lien de validation non valide ou compte déjà activé.",
-//             });
-//         }
-//       })
-//       .catch((err) => {
-//         console.error(err);
-//         res
-//           .status(500)
-//           .json({
-//             error: "Une erreur s'est produite lors de l'activation du compte.",
-//           });
-//       });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(400).json({ error: "Lien de validation invalide ou expiré." });
-//   }
-// };
-
 
 exports.activeUser = async (req, res) => {
   const { token } = req.params;
@@ -214,12 +167,20 @@ exports.activeUser = async (req, res) => {
     if (user) {
       console.log(user);
       if (user.isActivated) {
-        console.log("Compte déjà activé pour l'utilisateur avec l'ID : ", user._id);
+        console.log(
+          "Compte déjà activé pour l'utilisateur avec l'ID : ",
+          user._id
+        );
         return res.status(200).json({ message: "Compte déjà activé." });
       } else {
-        await User.updateOne({ _id: user._id }, { $set: { isActivated: true } });
+        await User.updateOne(
+          { _id: user._id },
+          { $set: { isActivated: true } }
+        );
         console.log("Compte activé pour l'utilisateur avec l'ID : ", user._id);
-        return res.status(200).json({ message: "Votre compte a été activé avec succès." });
+        return res
+          .status(200)
+          .json({ message: "Votre compte a été activé avec succès." });
       }
     } else {
       console.log("Lien de validation invalide.");
@@ -230,8 +191,6 @@ exports.activeUser = async (req, res) => {
     return res.status(400).json({ message: "Lien de validation invalide." });
   }
 };
-
-
 
 //login function
 exports.loginUser = (request, response) => {
@@ -274,36 +233,37 @@ exports.loginUser = (request, response) => {
           });
 
           user.token = token;
-          user.save()
-          .then(() => {
-            response.status(200).send({
-              message: "Login Successful",
-              isActivated: user.isActivated,
-              email: user.email,
-              token,
-              role: user.role,
+          user
+            .save()
+            .then(() => {
+              response.status(200).send({
+                message: "Login Successful",
+                isActivated: user.isActivated,
+                email: user.email,
+                token,
+                role: user.role,
+              });
+            })
+            .catch((error) => {
+              response.status(500).send({
+                message: "Erreur de serveur interne",
+                error,
+              });
             });
-          })
-          .catch((error) => {
-            response.status(500).send({
-              message: "Erreur de serveur interne",
-              error,
-            });
+        })
+        .catch((error) => {
+          response.status(500).send({
+            message: "Erreur de serveur interne",
+            error,
           });
-      })
-      .catch((error) => {
-        response.status(500).send({
-          message: "Erreur de serveur interne",
-          error,
         });
+    })
+    .catch((error) => {
+      response.status(500).send({
+        message: "Erreur de serveur interne",
+        error,
       });
-  })
-  .catch((error) => {
-    response.status(500).send({
-      message: "Erreur de serveur interne",
-      error,
     });
-  });
 };
 
 //user-info function

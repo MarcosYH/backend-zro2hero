@@ -16,7 +16,7 @@ dotenv.config();
 app.use(cookieParser());
 
 exports.createParcours = async (request, response) => {
-  const { wording, description, image, categorie } = request.body;
+  const { wording, description, image, categorie, level, time, timecategory } = request.body;
 
   try {
     const result = await cloudinary.uploader.upload(image, {
@@ -30,6 +30,9 @@ exports.createParcours = async (request, response) => {
         url: result.secure_url,
       },
       categorie,
+      level,
+      time,
+      timecategory
     });
 
     const parcours = await nouveauParcours.save();
