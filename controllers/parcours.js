@@ -71,12 +71,12 @@ exports.getOneParcours = async (req, res) => {
 
 exports.updateParcours = async (request, response) => {
   const { id } = request.params;
-  const { wording, description, image, categorie } = request.body;
+  const { wording, description, image, categorie, level, time, timecategory  } = request.body;
 
   try {
     const parcours = await Parcours.findByIdAndUpdate(
       id,
-      { wording, description, image, categorie },
+      { wording, description, image, categorie, level, time, timecategory },
       { new: true }
     );
 
@@ -93,7 +93,7 @@ exports.updateParcours = async (request, response) => {
 };
 
 exports.deleteParcours = async (request, response) => {
-  const { id } = request.params; // Récupérez l'ID du parcours à supprimer depuis les paramètres de l'URL
+  const { id } = request.params;
 
   try {
     const parcours = await Parcours.findByIdAndDelete(id);
