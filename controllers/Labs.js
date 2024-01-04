@@ -65,3 +65,17 @@ exports.getOneLab = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.deleteLab = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const lab = await Labs.findByIdAndDelete(id);
+    if (!lab) {
+      return res.status(404).json({ error: "lab non trouvé" });
+    }
+    res.status(200).json({ message: "Lab supprimé avec succès" });
+  }
+  catch  (error) {
+    res.status(500).json({ error: error.message, message: "Erreur lors de la suppression"  });
+  }
+};
