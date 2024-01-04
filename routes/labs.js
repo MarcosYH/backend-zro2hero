@@ -9,5 +9,6 @@ router.use(cookieParser());
 router.post('/createLab', labsController.createLab);
 router.get('/viewAllLab', labsController.getAllLabs);
 router.get('/viewOneLab/:id', labsController.getOneLab);
+router.delete('/deleteOneLab/:id', labsController.deleteLab);
 
 module.exports = router;
