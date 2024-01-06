@@ -7,6 +7,7 @@ const dotenv = require("dotenv");
 const userRoutes = require("./routes/users");
 const parcoursRoutes = require("./routes/parcours");
 const labsRoutes = require("./routes/labs");
+const coursesRoutes = require("./routes/courses");
 
 // require database connection
 const dbConnect = require("./db/dbConnect");
@@ -42,5 +43,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/", userRoutes);
 app.use("/parcours", parcoursRoutes);
 app.use("/labs", labsRoutes);
+app.use("/course", coursesRoutes);
 
 module.exports = app;
