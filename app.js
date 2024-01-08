@@ -43,6 +43,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/", userRoutes);
 app.use("/parcours", parcoursRoutes);
 app.use("/labs", labsRoutes);
-app.use("/course", coursesRoutes);
+app.use("/course", coursesRoutes); 
 
 module.exports = app;
