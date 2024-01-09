@@ -17,21 +17,35 @@ app.use(cookieParser());
 
 //function not completely
 exports.createCourse = async (request, response) => {
-    try {
-        const { title, description, duration } = request.body;
+  try {
+    const {
+      title,
+      description,
+      duration,
+      level,
+      type,
+      category,
+      active,
+      time,
+    } = request.body;
 
-        // Create a new course using the Course model
-        const newCourse = new Course({
-            title,
-            description,
-            duration,
-        });
+    // Create a new course using the Course model
+    const newCourse = new Course({
+      title,
+      description,
+      duration,
+      level,
+      type,
+      category,
+      active,
+      time,
+    });
 
-        // Save the new course to the database
-        const savedCourse = await newCourse.save();
+    // Save the new course to the database
+    const savedCourse = await newCourse.save();
 
-        response.status(201).json(savedCourse);
-    } catch (error) {
-        response.status(500).json({ error: "Failed to create course" });
-    }
+    response.status(201).json(savedCourse);
+  } catch (error) {
+    response.status(500).json({ error: "Failed to create course" });
+  }
 };
