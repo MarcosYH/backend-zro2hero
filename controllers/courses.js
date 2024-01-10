@@ -15,36 +15,42 @@ const dotenv = require("dotenv");
 dotenv.config();
 app.use(cookieParser());
 
-//function not completely
-exports.createCourse = async (request, response) => {
-  try {
-    const {
-      title,
-      description,
-      duration,
-      level,
-      type,
-      category,
-      active,
-      time,
-    } = request.body;
 
-    // Create a new course using the Course model
+exports.createCourse = async (request, response) => {
+  const {
+    title,
+    image,
+    level,
+    type,
+    category,
+    active,
+    description,
+    time,
+  } = request.body;
+  try {
+    const courseImages = await cloudinary.uploader.upload(image, {
+      folder: "parcours",
+    });
     const newCourse = new Course({
       title,
-      description,
-      duration,
+      image: {
+        public_id: courseImages.public_id,
+        url: courseImages.secure_url,
+      },
       level,
       type,
       category,
       active,
+      description,
       time,
     });
 
-    // Save the new course to the database
     const savedCourse = await newCourse.save();
 
-    response.status(201).json(savedCourse);
+    response.status(201).json({
+        message: "Cours créé avec succès",
+        Course: savedCourse,
+    });
   } catch (error) {
     response.status(500).json({ error: "Failed to create course" });
   }
