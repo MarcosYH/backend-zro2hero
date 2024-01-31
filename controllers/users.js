@@ -51,7 +51,7 @@ exports.registerUser = (request, response) => {
             tel: tel,
             role: role || "student",
           });
-          use
+          user
             .save()
             .then((savedUser) => {
               const expirationTime = 10 * 60;
@@ -98,7 +98,7 @@ exports.registerUser = (request, response) => {
                                 <h2 style="font-size: 24px; color: #333;">Bienvenue sur zero2hero, ${name} !</h2>
                                 <p style="font-size: 16px; color: #555;">Merci de vous être inscrit sur <strong>zero2hero</strong>. Pour valider votre compte, veuillez cliquer sur le lien ci-dessous :</p>
                                 <p style="text-align: center; margin-top: 30px;">
-                                    <a href="https://dev.zth.emes.bj/validateUser/${tokenvalidationregister}" style="display: inline-block; text-decoration: none; background-color: #007bff; color: #ffffff; padding: 10px 20px; border-radius: 5px; font-size: 16px;">Valider mon compte</a>
+                                    <a href="https://zero2hero-ivory.vercel.app/validateUser/${tokenvalidationregister}" style="display: inline-block; text-decoration: none; background-color: #007bff; color: #ffffff; padding: 10px 20px; border-radius: 5px; font-size: 16px;">Valider mon compte</a>
                                 </p>
                                 <p style="font-size: 14px; color: #777; margin-top: 30px;">Si vous n'avez pas créé de compte sur zero2hero, veuillez le signalé.</p>
                             </td>
