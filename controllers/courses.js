@@ -11,7 +11,6 @@ cloudinary.config({
 });
 
 const dotenv = require("dotenv");
-
 dotenv.config();
 app.use(cookieParser());
 

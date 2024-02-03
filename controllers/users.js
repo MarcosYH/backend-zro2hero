@@ -16,13 +16,11 @@ const dotenv = require("dotenv");
 dotenv.config();
 app.use(cookieParser());
 
-// starting api
 exports.start = (request, response, next) => {
   response.json({ message: "Hey👋! This is backend for zero2hero!" });
   next();
 };
 
-// register function
 exports.registerUser = (request, response) => {
   const { name, email, password, tel, role } = request.body;
 
@@ -192,7 +190,6 @@ exports.activeUser = async (req, res) => {
   }
 };
 
-//login function
 exports.loginUser = (request, response) => {
   // Vérifier si l'email existe
   User.findOne({ email: request.body.email })
@@ -266,7 +263,6 @@ exports.loginUser = (request, response) => {
     });
 };
 
-//user-info function
 exports.usersInfo = async (req, res) => {
   try {
     const token = req.query.token;
@@ -291,7 +287,6 @@ exports.usersInfo = async (req, res) => {
   }
 };
 
-//forgotpassword funcion
 exports.forgetpassword = async (req, res) => {
   const { email } = req.body;
 
@@ -419,7 +414,6 @@ exports.forgetpassword = async (req, res) => {
   }
 };
 
-// creactenewpassword function
 exports.createnewpassword = async (req, res) => {
   const { token } = req.params;
   const { password } = req.body;
@@ -456,7 +450,6 @@ exports.createnewpassword = async (req, res) => {
   }
 };
 
-// login with google function
 exports.loginGoogle = async function (req, res, next) {
   const redirectURL = "https://auth-api-adk2.onrender.com/auth/google/callback";
   const GOOGLE_CLIENT_ID =
@@ -482,7 +475,6 @@ exports.loginGoogle = async function (req, res, next) {
   res.json({ url: authorizeUrl });
 };
 
-// function Callback after authentication with Google
 exports.callbackAfterloginGoogle = async function (req, res, next) {
   const code = req.query.code;
 
@@ -560,3 +552,73 @@ exports.callbackAfterloginGoogle = async function (req, res, next) {
     res.redirect("https://authentification-eight.vercel.app/error");
   }
 };
+
+// ------------User CRUD operations----------------
+
+exports.createUser = function (req, res) {
+  const { isActivated, name, email, password, tel, role } = req.body;
+  const user = new User({ isActivated, name, email, password, tel, role });
+  user
+    .save()
+    .then((result) => {
+      res.status(201).json({ message: "User created successfully", result });
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Error creating user", error });
+    });
+};
+
+exports.getAllUsers = async function (req, res) {
+  try {
+    const users = await User.find();
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching users", error });
+  }
+};
+
+exports.deleteOneUser = async function (req, res) {
+  try {
+    const { id } = req.params;
+    const user = await User.findByIdAndDelete(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting user", error });
+  }
+};
+
+exports.updateOneUser = async function (req, res) {
+  const { id } = req.params;
+  const { name, email, tel, role } = req.body;
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      id,
+      { name, email, tel, role },
+      { new: true }
+    );
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ message: "User updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating user", error });
+  }
+};
+
+exports.getOneUserById = async function (req, res) {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching user", error });
+  }
+};
+
