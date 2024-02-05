@@ -6,6 +6,11 @@ const temoignageController = require("../controllers/temoignages")
 
 router.use(cookieParser());
 
-router.post("/create", temoignageController.createTemoignage);
+router.post("/", temoignageController.createTemoignage);
+router.get("/", temoignageController.getAllTemoignages);
+router.get("/:id", temoignageController.getOneTemoignage);
+router.put("/:id", temoignageController.updateTemoignage);
+router.delete("/:id", temoignageController.deleteTemoignage);
+
 
 module.exports = router;
