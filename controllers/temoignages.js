@@ -16,6 +16,13 @@ exports.createTemoignage = async (request, response) => {
       email,
       message,
     });
+    // Temoignage.findOne({ email: email }).then((temoignage) => {
+    //   if (temoignage) {
+    //     return response
+    //       .status(400)
+    //       .json({ message: "Cet email est déjà enregistré." });
+    //   }
+    // });
     await newTemoignage.save();
     response.status(201).json(newTemoignage);
   } catch (err) {
