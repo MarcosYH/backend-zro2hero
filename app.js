@@ -9,6 +9,8 @@ const parcoursRoutes = require("./routes/parcours");
 const labsRoutes = require("./routes/labs");
 const coursesRoutes = require("./routes/courses");
 const temoignagesRoutes = require("./routes/temoignages");
+const contactsRoutes = require("./routes/contacts");
+const subscribeRoutes = require("./routes/subscribeNewsletter");
 
 // require database connection
 const dbConnect = require("./db/dbConnect");
@@ -46,5 +48,7 @@ app.use("/parcours", parcoursRoutes);
 app.use("/labs", labsRoutes);
 app.use("/course", coursesRoutes); 
 app.use("/temoignage", temoignagesRoutes);
+app.use("/contact", contactsRoutes);
+app.use("/subscribe", subscribeRoutes);
 
 module.exports = app;
