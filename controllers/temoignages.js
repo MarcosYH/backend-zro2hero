@@ -10,25 +10,22 @@ app.use(cookieParser());
 exports.createTemoignage = async (request, response) => {
   try {
     const { name, email, message } = request.body;
+    const existingTemoignage = await Temoignage.findOne({ email });
 
-    const newTemoignage = new Temoignage({
-      name,
-      email,
-      message,
-    });
-    // Temoignage.findOne({ email: email }).then((temoignage) => {
-    //   if (temoignage) {
-    //     return response
-    //       .status(400)
-    //       .json({ message: "Cet email est déjà enregistré." });
-    //   }
-    // });
+    if (existingTemoignage) {
+      return response.status(400).json({ message: "Cet email est déjà enregistré." });
+    }
+
+    const newTemoignage = new Temoignage({ name, email, message });
     await newTemoignage.save();
+
     response.status(201).json(newTemoignage);
-  } catch (err) {
+  }
+  catch (error) {
     response.status(500).json({ error: error.message });
   }
 };
+
 
 exports.getAllTemoignages = async (request, response) => {
   try {

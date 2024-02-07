@@ -9,6 +9,7 @@ const crypto = require("crypto");
 const { google } = require("googleapis");
 const { OAuth2Client } = require("google-auth-library");
 
+
 const Cookies = require("universal-cookie");
 
 const dotenv = require("dotenv");
@@ -199,7 +200,6 @@ exports.loginUser = (request, response) => {
           message: "Email non trouvé",
         });
       }
-      // Vérifier si le compte est activé
       if (!user.isActivated) {
         return response.status(403).send({
           message: "Compte non activé",
@@ -556,8 +556,8 @@ exports.callbackAfterloginGoogle = async function (req, res, next) {
 // ------------User CRUD operations----------------
 
 exports.createUser = function (req, res) {
-  const { isActivated, name, email, password, tel, role } = req.body;
-  const user = new User({ isActivated, name, email, password, tel, role });
+  const { name, email, tel, role, isActivated } = req.body;
+  const user = new User({ name, email, tel, role, isActivated });
   user
     .save()
     .then((result) => {
@@ -567,6 +567,134 @@ exports.createUser = function (req, res) {
       res.status(500).json({ message: "Error creating user", error });
     });
 };
+
+exports.createUser = function (req, res) {
+  const { name, email, tel, role, isActivated } = req.body;
+
+  function generateRandomPassword() {
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*_+";
+    let password = "";
+    const passwordLength = 8;
+  
+    for (let i = 0; i < passwordLength; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      password += characters[randomIndex];
+    }
+  
+    return password;
+  }
+
+  const password = generateRandomPassword();
+  const user = new User({ name, email, tel, role, isActivated });
+
+  user
+    .save()
+    .then((result) => {
+      sendEmail(email, name, password);
+      res.status(201).json({ message: "User created successfully", result });
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Error creating user", error });
+    });
+};
+
+function sendEmail(email, name, password) {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "zero2hero023@gmail.com",
+      pass: "gbaryinyavmewewj",
+    },
+  });
+
+  const mailOptions = {
+    from: "zero2hero",
+    to: email,
+    subject: "Création de compte",
+    html: `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                background-color: #f1f1f1;
+            }
+            
+            .container {
+                text-align: center;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #ffffff;
+                border-radius: 5px;
+            }
+            
+            h1 {
+                margin: 0;
+                line-height: 24px;
+                font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+                font-size: 20px;
+                font-style: normal;
+                font-weight: normal;
+                color: #333333;
+            }
+            
+            p {
+                margin: 0;
+                -webkit-text-size-adjust: none;
+                -ms-text-size-adjust: none;
+                font-family: Helvetica, 'Helvetica Neue', Arial, verdana, sans-serif;
+                line-height: 24px;
+                color: #666666;
+                font-size: 16px;
+            }
+            
+            .button {
+                display: inline-block;
+                margin-top: 20px;
+                padding: 10px 20px;
+                background-color: #007bff;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 5px;
+            }
+            a{
+              color: #fff !important;  
+          }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <img src="https://res.cloudinary.com/dbx3mcmdp/image/upload/v1698390947/parcours/iiklkuigcwx9ibesloms.png" alt="img" width="175">
+            <h1><strong>Bienvenue sur zero2hero, ${name} !</strong></h1>
+            <p>Hey👋!</p>
+            <p>Votre compte a été créé avec succès. Voici votre mot de passe :</p>
+            <p style="font-size: 20px; color: #007bff; font-weight: bold;">${password}</p>
+            <p>Connectez-vous à votre compte en utilisant votre adresse e-mail et ce mot de passe.</p>
+            <a class="button" href="https://zero2hero-ivory.vercel.app/login" target="_blank">Se connecter</a>
+        </div>
+    </body>
+    </html>
+    `,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log("Error sending email:", error);
+    } else {
+      console.log("Email sent:", info.response);
+    }
+  });
+}
 
 exports.getAllUsers = async function (req, res) {
   try {
@@ -621,4 +749,3 @@ exports.getOneUserById = async function (req, res) {
     res.status(500).json({ message: "Error fetching user", error });
   }
 };
-
