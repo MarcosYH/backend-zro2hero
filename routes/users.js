@@ -19,8 +19,12 @@ router.get("/auth/google/callback", usersController.callbackAfterloginGoogle)
 // route crud user
 router.post("/user", usersController.createUser);
 router.get("/user/:id", usersController.getOneUserById);
-router.delete("/user", usersController.deleteOneUser);
-router.put("/user", usersController.updateOneUser);
+router.delete("/user/:id", usersController.deleteOneUser);
+router.put("/user/:id", usersController.updateOneUser);
 router.get("/alluser", usersController.getAllUsers);
+
+router.get("/user/:role/list", usersController.getUsersByRole);
+router.get("/user/:role/count", usersController.getUserCountByRole);
+
 
 module.exports = router;

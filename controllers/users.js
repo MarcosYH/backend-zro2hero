@@ -9,7 +9,6 @@ const crypto = require("crypto");
 const { google } = require("googleapis");
 const { OAuth2Client } = require("google-auth-library");
 
-
 const Cookies = require("universal-cookie");
 
 const dotenv = require("dotenv");
@@ -31,7 +30,6 @@ exports.registerUser = (request, response) => {
       .json({ message: "Tous les champs sont obligatoires." });
   }
 
-  // Vérifier si l'email existe déjà dans la base de données
   User.findOne({ email: email })
     .then((existingUser) => {
       if (existingUser) {
@@ -39,7 +37,6 @@ exports.registerUser = (request, response) => {
           .status(400)
           .json({ message: "Cet email est déjà enregistré." });
       }
-      // Hash du mot de passe
       bcrypt
         .hash(password, 10)
         .then((hashedPassword) => {
@@ -266,21 +263,16 @@ exports.loginUser = (request, response) => {
 exports.usersInfo = async (req, res) => {
   try {
     const token = req.query.token;
-    // Recherche de l'utilisateur dans la base de données par email
     const user = await User.findOne({ token: token });
-
     if (user) {
-      // Renvoie les informations de l'utilisateur
       res.json({
         name: user.name,
         email: user.email,
       });
     } else {
-      // L'utilisateur n'a pas été trouvé
       res.status(404).json({ error: "Utilisateur non trouvé" });
     }
   } catch (error) {
-    // Une erreur s'est produite lors de la recherche de l'utilisateur
     res
       .status(500)
       .json({ error: "Erreur lors de la recherche de l'utilisateur" });
@@ -557,46 +549,58 @@ exports.callbackAfterloginGoogle = async function (req, res, next) {
 
 exports.createUser = function (req, res) {
   const { name, email, tel, role, isActivated } = req.body;
-  const user = new User({ name, email, tel, role, isActivated });
-  user
-    .save()
-    .then((result) => {
-      res.status(201).json({ message: "User created successfully", result });
-    })
-    .catch((error) => {
-      res.status(500).json({ message: "Error creating user", error });
-    });
-};
-
-exports.createUser = function (req, res) {
-  const { name, email, tel, role, isActivated } = req.body;
 
   function generateRandomPassword() {
     const characters =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*_+";
-    let password = "";
+    let generatepassword = "";
     const passwordLength = 8;
-  
     for (let i = 0; i < passwordLength; i++) {
       const randomIndex = Math.floor(Math.random() * characters.length);
-      password += characters[randomIndex];
+      generatepassword += characters[randomIndex];
     }
-  
-    return password;
+    return generatepassword;
   }
 
-  const password = generateRandomPassword();
-  const user = new User({ name, email, tel, role, isActivated });
+  const generatepassword = generateRandomPassword();
 
-  user
-    .save()
-    .then((result) => {
-      sendEmail(email, name, password);
-      res.status(201).json({ message: "User created successfully", result });
-    })
-    .catch((error) => {
-      res.status(500).json({ message: "Error creating user", error });
+  User.findOne({ email: email }).then((existingUser) => {
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+    bcrypt.hash(generatepassword, 10).then((hashedPassword) => {
+      const user = new User({
+        name,
+        email,
+        tel,
+        role: role || "student",
+        isActivated: isActivated || false,
+        password: hashedPassword,
+      });
+      user
+        .save()
+        .then((result) => {
+          sendEmail(email, name, generatepassword);
+          const expirationTime = 10 * 60;
+          const tokenvalidationregister = jwt.sign(
+            {
+              userId: user._id,
+              code: crypto.randomBytes(20).toString("hex"),
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: expirationTime }
+          );
+          res.status(201).json({
+            message: "User created successfully",
+            user: result,
+            tokenvalidationregister,
+          });
+        })
+        .catch((error) => {
+          res.status(500).json({ message: "Error creating user", error });
+        });
     });
+  });
 };
 
 function sendEmail(email, name, password) {
@@ -747,5 +751,55 @@ exports.getOneUserById = async function (req, res) {
     res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ message: "Error fetching user", error });
+  }
+};
+
+// ------------User count----------------
+
+const countUsersByRole = async (role) => {
+  try {
+    const count = await User.countDocuments({ role });
+    return count;
+  } catch (error) {
+    console.error(`Error counting users with role ${role}:`, error);
+    throw error;
+  }
+};
+
+exports.getUserCountByRole = async (req, res) => {
+  const { role } = req.params;
+
+  if (!["student", "admin", "teacher"].includes(role)) {
+    return res.status(400).json({ error: "Invalid role parameter" });
+  }
+  try {
+    const count = await countUsersByRole(role);
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred while counting users" });
+  }
+};
+
+const userByRole = async (role) => {
+  try {
+    const users = await User.find({ role });
+    return users;
+  } catch (error) {
+    console.error(`Error fetching users with role ${role}:`, error);
+    throw error;
+  }
+};
+
+exports.getUsersByRole = async (req, res) => {
+  const { role } = req.params;
+
+  if (!["student", "admin", "teacher"].includes(role)) {
+    return res.status(400).json({ error: "Invalid role parameter" });
+  }
+  try {
+    const users = await userByRole(role);
+    res.json({ users });
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred while fetching users" });
   }
 };
