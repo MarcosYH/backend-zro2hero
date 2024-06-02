@@ -11,4 +11,6 @@ router.get('/viewAllLab', labsController.getAllLabs);
 router.get('/viewOneLab/:id', labsController.getOneLab);
 router.delete('/deleteOneLab/:id', labsController.deleteLab);
 
+router.get('/count', labsController.getLabsCount);
+
 module.exports = router;

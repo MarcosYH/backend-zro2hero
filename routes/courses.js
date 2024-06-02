@@ -9,5 +9,6 @@ router.use(cookieParser());
 
 router.post("/create", courseController.createCourse);
 
+router.get("/count", courseController.getCourseCount);
 
 module.exports = router;
