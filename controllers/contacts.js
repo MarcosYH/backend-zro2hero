@@ -20,7 +20,7 @@ exports.createContact = async (request, response) => {
     });
     await newContact.save();
     response.status(201).json({message: "Request created successfully", newContact});
-  } catch (err) {
+  } catch (error) {
     response.status(500).json({ error: error.message });
   }
 };
