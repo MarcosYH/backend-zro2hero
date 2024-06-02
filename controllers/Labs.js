@@ -79,3 +79,33 @@ exports.deleteLab = async (req, res) => {
     res.status(500).json({ error: error.message, message: "Erreur lors de la suppression"  });
   }
 };
+
+exports.updateLab = async (req, res) => {
+  const { id } = req.params;
+  const { wording, description, technologie, type, level, duration, auteur, score, image, services, type_access } = req.body;
+
+  try {
+    const lab = await Labs.findByIdAndUpdate(
+      id,
+      { wording, description, technologie, type, level, duration, auteur, score, image, services, type_access },
+      { new: true }
+    );
+
+    if (!lab) {
+      return res.status(404).json({ error: "Lab non trouvé" });
+    }
+
+    res.status(200).json({ message: "Lab mis à jour avec succès", lab });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getLabsCount = async (req, res) => {
+  try {
+    const labsCount = await Labs.find().countDocuments();
+    res.status(200).json({labsCount});
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
