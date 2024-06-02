@@ -54,3 +54,35 @@ exports.createCourse = async (request, response) => {
     response.status(500).json({ error: "Failed to create course" });
   }
 };
+
+exports.getAllCourses = async (request, response) => {
+  try {
+    const courses = await Course.find();
+    response.status(200).json(courses);
+  } catch (error) {
+    response.status(500).json({ error: "Failed to get courses" });
+  }
+};
+
+exports.getOneCourse = async (request, response) => {
+  try {
+    const courseId = request.params.id;
+    const course = await Course.findById(courseId);
+    if (!course) {
+      response.status(404).json({ error: "Course not found" });
+    } else {
+      response.status(200).json(course);
+    }
+  } catch (error) {
+    response.status(500).json({ error: "Failed to get course" });
+  }
+};
+
+exports.getCourseCount = async (request, response) => {
+  try {
+    const courseCount = await Course.find().countDocuments();
+    response.status(200).json({courseCount});
+  } catch (error) {
+    response.status(500).json({ error: "Failed to get course count" });
+  }
+};
