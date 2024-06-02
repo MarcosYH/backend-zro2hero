@@ -16,7 +16,8 @@ dotenv.config();
 app.use(cookieParser());
 
 exports.createParcours = async (request, response) => {
-  const { wording, description, image, categorie, level, time, timecategory } = request.body;
+  const { wording, description, image, categorie, level, time, timecategory } =
+    request.body;
 
   try {
     const result = await cloudinary.uploader.upload(image, {
@@ -32,7 +33,7 @@ exports.createParcours = async (request, response) => {
       categorie,
       level,
       time,
-      timecategory
+      timecategory,
     });
 
     const parcours = await nouveauParcours.save();
@@ -71,7 +72,8 @@ exports.getOneParcours = async (request, response) => {
 
 exports.updateParcours = async (request, response) => {
   const { id } = request.params;
-  const { wording, description, image, categorie, level, time, timecategory  } = request.body;
+  const { wording, description, image, categorie, level, time, timecategory } =
+    request.body;
 
   try {
     const parcours = await Parcours.findByIdAndUpdate(
@@ -103,6 +105,15 @@ exports.deleteParcours = async (request, response) => {
     }
 
     response.status(200).json({ message: "Parcours supprimé avec succès" });
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+};
+
+exports.getParcoursCount = async (request, response) => {
+  try {
+    const parcoursCount = await Parcours.find().countDocuments();
+    response.status(200).json({ parcoursCount });
   } catch (error) {
     response.status(500).json({ error: error.message });
   }

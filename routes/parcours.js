@@ -2,8 +2,7 @@ const express = require("express");
 const router = express.Router();
 const cookieParser = require("cookie-parser");
 
-
-const parcoursController = require("../controllers/parcours")
+const parcoursController = require("../controllers/parcours");
 
 router.use(cookieParser());
 
@@ -12,5 +11,7 @@ router.get("/viewAllPath", parcoursController.getAllParcours);
 router.get("/viewOnePath/:id", parcoursController.getOneParcours);
 router.put("/updateOnePath/:id", parcoursController.updateParcours);
 router.delete("/deleteOnePath/:id", parcoursController.deleteParcours);
+
+router.get("/count", parcoursController.getParcoursCount);
 
 module.exports = router;
