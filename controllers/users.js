@@ -724,18 +724,18 @@ exports.deleteOneUser = async function (req, res) {
 
 exports.updateOneUser = async function (req, res) {
   const { id } = req.params;
-  const { name, email, tel, role } = req.body;
+  const { name, email, tel, role, isActivated } = req.body;
 
   try {
     const user = await User.findByIdAndUpdate(
       id,
-      { name, email, tel, role },
+      { name, email, tel, role, isActivated },
       { new: true }
     );
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.status(200).json({ message: "User updated successfully" });
+    res.status(200).json({ message: "User updated successfully" }, user);
   } catch (error) {
     res.status(500).json({ message: "Error updating user", error });
   }

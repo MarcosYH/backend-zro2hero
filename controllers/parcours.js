@@ -95,9 +95,8 @@ exports.updateParcours = async (request, response) => {
 };
 
 exports.deleteParcours = async (request, response) => {
-  const { id } = request.params;
-
   try {
+    const { id } = request.params;
     const parcours = await Parcours.findByIdAndDelete(id);
 
     if (!parcours) {
@@ -107,6 +106,7 @@ exports.deleteParcours = async (request, response) => {
     response.status(200).json({ message: "Parcours supprimé avec succès" });
   } catch (error) {
     response.status(500).json({ error: error.message });
+    console.log(error);
   }
 };
 
